@@ -1,0 +1,10 @@
+name: pull_request_target_poc
+
+on:
+  pull_request_target:
+
+jobs:
+  poc:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo whoami
